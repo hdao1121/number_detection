@@ -41,4 +41,4 @@ def show_random_digit(index):
 
 shuffle_index = np.random.permutation(60000)
 X_train, y_train = X_train[shuffle_index], y_train[shuffle_index]
-
+print("test")
