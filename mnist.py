@@ -1,6 +1,10 @@
 from six.moves import urllib
 from sklearn.datasets import fetch_mldata
 from scipy.io import loadmat
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
 import matplotlib
 import matplotlib.pyplot as plt
 import os.path
@@ -28,8 +32,13 @@ def load_mnist():
     }
     return  mnist
 data = load_mnist()
+
+# prepare data
 X, y = data["data"], data["target"]
 X_train, X_test, y_train, y_test = X[:60000], X[60000:], y[:60000], y[60000:]
+
+shuffle_index = np.random.permutation(60000)
+X_train, y_train = X_train[shuffle_index], y_train[shuffle_index]
 
 def show_random_digit(index):
     digit = X[index]
@@ -39,6 +48,22 @@ def show_random_digit(index):
     plt.axis("off")
     plt.show()
 
-shuffle_index = np.random.permutation(60000)
-X_train, y_train = X_train[shuffle_index], y_train[shuffle_index]
-print("test")
+def binary_classification(number):
+    y_bin_train = (y_train == number)
+    y_bin_test = (y_train != number)
+
+    sgd_clf = SGDClassifier(max_iter=5, tol=None)
+    sgd_clf.fit(X_train, y_bin_train)
+
+    y_train_pred = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3)
+    print("confusion matrix: \n",confusion_matrix(y_bin_train, y_train_pred), "\n")
+    print("f1 score: ", f1_score(y_bin_train, y_train_pred), "\n")
+
+    y_scores = sgd_clf.decision_function([X[number]])
+    threshold = 200000
+
+binary_classification(5)
+
+
+def multiclass_classification():
+    print("hello")
