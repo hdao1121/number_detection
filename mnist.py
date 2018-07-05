@@ -62,7 +62,7 @@ def binary_classification(number):
 
     y_scores = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3, method="decision_function")
     print(y_scores)
-    precisions, recalls, thresholds =  precision_recall_curve(y_bin_train, y_scores)
+    precisions, recalls, thresholds = precision_recall_curve(y_bin_train, y_scores)
     print(precisions, recalls, thresholds)
 
 binary_classification(5)
