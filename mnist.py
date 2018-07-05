@@ -5,6 +5,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
+from sklearn.metrics import precision_recall_curve
 import matplotlib
 import matplotlib.pyplot as plt
 import os.path
@@ -59,8 +60,10 @@ def binary_classification(number):
     print("confusion matrix: \n",confusion_matrix(y_bin_train, y_train_pred), "\n")
     print("f1 score: ", f1_score(y_bin_train, y_train_pred), "\n")
 
-    y_scores = sgd_clf.decision_function([X[number]])
-    threshold = 200000
+    y_scores = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3, method="decision_function")
+    print(y_scores)
+    precisions, recalls, thresholds =  precision_recall_curve(y_bin_train, y_scores)
+    print(precisions, recalls, thresholds)
 
 binary_classification(5)
 
