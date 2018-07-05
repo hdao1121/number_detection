@@ -49,6 +49,13 @@ def show_random_digit(index):
     plt.axis("off")
     plt.show()
 
+def plot_precision_recall_vs_threshold(precisions, recalls, thresholds):
+    plt.plot(thresholds, precisions[:-1], "b--", label="Precision")
+    plt.plot(thresholds, recalls[:1], "g-", label="Recall")
+    plt.xlabel("Threshold")
+    plt.legend(loc="upper left")
+    plt.ylim([0, 1])
+
 def binary_classification(number):
     y_bin_train = (y_train == number)
     y_bin_test = (y_train != number)
@@ -56,16 +63,15 @@ def binary_classification(number):
     sgd_clf = SGDClassifier(max_iter=5, tol=None)
     sgd_clf.fit(X_train, y_bin_train)
 
-    y_train_pred = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3)
-    print("confusion matrix: \n",confusion_matrix(y_bin_train, y_train_pred), "\n")
-    print("f1 score: ", f1_score(y_bin_train, y_train_pred), "\n")
+    # print("confusion matrix: \n",confusion_matrix(y_bin_train, y_train_pred), "\n")
+    # print("f1 score: ", f1_score(y_bin_train, y_train_pred), "\n")
 
     y_scores = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3, method="decision_function")
-    print(y_scores)
     precisions, recalls, thresholds = precision_recall_curve(y_bin_train, y_scores)
-    print(precisions, recalls, thresholds)
 
 binary_classification(5)
+
+
 
 
 def multiclass_classification():
