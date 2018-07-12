@@ -3,10 +3,12 @@ from sklearn.datasets import fetch_mldata
 from scipy.io import loadmat
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_predict
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import precision_recall_curve
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
@@ -45,6 +47,10 @@ X_train, X_test, y_train, y_test = X[:60000], X[60000:], y[:60000], y[60000:]
 shuffle_index = np.random.permutation(60000)
 X_train, y_train = X_train[shuffle_index], y_train[shuffle_index]
 
+# scale data to improve the score
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train.astype(np.float64))
+
 def show_random_digit(index):
     digit = X[index]
     digit = digit.reshape(28,28)
@@ -70,14 +76,16 @@ def plot_roc_curve(fpr, tpr, label=None):
     plt.ylabel('True Positive Rate')
     plt.show()
 
-def binary_classification(number, randomState):
+def classification(number, randomState):
     y_bin_train = (y_train == number)
     y_bin_test = (y_train != number)
 
-    # # SGDClassifier
-    # sgd_clf = SGDClassifier(max_iter=5, tol=None, random_state=randomState)
-    # sgd_clf.fit(X_train, y_bin_train)
-    # y_scores_sgd = cross_val_predict(sgd_clf, X_train, y_bin_train, cv=3, method="decision_function")
+    # # SGDClassifier: automatically runs OvA or OvO strategy, either use the OneVsOneClassifier or OneVsRestClassifier
+    # classes to force a strategy
+    #
+    # ovo_clf = OneVsRestClassifier(SGDClassifier(max_iter=5, tol=None, random_state=randomState))
+    # ovo_clf.fit(X_train_scaled, y_bin_train)
+    # y_scores_sgd = cross_val_predict(ovo_clf, X_train_scaled, y_bin_train, cv=3, method="decision_function")
     #
     # # 90% precision, threshold is determined after looking through the plots
     # precisions, recalls, thresholds = precision_recall_curve(y_bin_train, y_scores_sgd)
@@ -87,7 +95,7 @@ def binary_classification(number, randomState):
 
     # RandomForestClassifer
     forest_clf = RandomForestClassifier(random_state=randomState)
-    y_probas_forest = cross_val_predict(forest_clf, X_train, y_bin_train, cv=3, method="predict_proba")
+    y_probas_forest = cross_val_predict(forest_clf, X_train_scaled, y_bin_train, cv=3, method="predict_proba")
     y_scores_forest = y_probas_forest[:, 1]  # score = proba of positive class
     fpr_forest, tpr_forest, thresholds_forest = roc_curve(y_bin_train, y_scores_forest)
 
@@ -95,13 +103,12 @@ def binary_classification(number, randomState):
     fpr_sgd, tpr_sdg, thresholds_sgd = roc_curve(y_bin_train, y_scores_sgd)
     # plot_roc_curve(fpr, tpr, thresholds)
     print("ROC score for SDGClassifer:", roc_auc_score(y_bin_train, y_scores_sgd))
+# classification(5, 42)
 
-
-
-binary_classification(5, 42)
-
-
-
-
-def multiclass_classification():
-    print("hello")
+# Error Analysis
+def analyze():
+    sgd_clf = SGDClassifier(max_iter=5, tol=None)
+    y_train_predict = cross_val_predict(sgd_clf, X_train_scaled, y_train, cv=3)
+    conf_mx = confusion_matrix(y_train, y_train_predict)
+    print(conf_mx)
+analyze()
